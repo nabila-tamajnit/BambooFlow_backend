@@ -13,6 +13,19 @@ const logMiddleware = require('./middlewares/log.middleware');
 server.use(logMiddleware());
 // ------------------------------------------------------
 
+// ---- Utilisation du middleware cors ------------------
+const cors = require('cors');
+//? -> Configuration "Tout est autorisé (parfait pour DEV)"
+server.use(cors());
+
+//? -> Configuration pour la production "Autoriser uniquement notre app react"
+//* server.use(cors({
+//*     origin : 'http://<url_vercel>:5173',
+//*     methods : ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+//* }))
+
+// ------------------------------------------------------
+
 
 // ---- Connection DB ------------------------------
 // On va créer un middleware qui établit une connexion à chaque requête
