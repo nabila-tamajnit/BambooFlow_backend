@@ -45,7 +45,7 @@ const taskService = {
                 .and( categoryFilter )
                 .populate({
                     path: 'categoryId',
-                    select: { id: 1, name: 1, icon: 1 }
+                    select: { id: 1, name: 1, priority: 1, icon: 1, color :1 }
                 })
                 .populate({
                     path: 'fromUserId',
@@ -72,7 +72,7 @@ const taskService = {
             const task = await Task.findById(id)
                 .populate({
                     path: 'categoryId',
-                    select: { id: 1, name: 1, icon: 1 }
+                    select: { id: 1, name: 1, priority: 1, icon: 1, color :1 }
                 })
                 .populate({
                     path: 'fromUserId',
@@ -99,7 +99,7 @@ const taskService = {
             const tasks = await Task.find({ toUserId: userId })
                 .populate({
                     path: 'categoryId',
-                    select: { id: 1, name: 1, icon: 1 }
+                    select: { id: 1, name: 1, priority: 1, icon: 1, color :1 }
                 })
                 .populate({
                     path: 'fromUserId',
@@ -124,7 +124,7 @@ const taskService = {
             const tasks = await Task.find({ fromUserId: userId })
                 .populate({
                     path: 'categoryId',
-                    select: { id: 1, name: 1, icon: 1 }
+                    select: { id: 1, name: 1, priority: 1, icon: 1, color :1 }
                 })
                 .populate({
                     path: 'fromUserId',
