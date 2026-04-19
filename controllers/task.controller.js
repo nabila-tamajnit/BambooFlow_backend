@@ -131,13 +131,13 @@ const taskController = {
         const newTaskInfos = req.body;
 
         //vérifier si la tâche existe
-        const task = fakeTaskService.findById(id);
+        const task = taskService.findById(id);
         if (!task) {
             res.status(404).json({ statusCode: 404, message: 'La tâche que vous essayez de modifier n\'existe pas' });
         }
 
         //si la tâche existe, on peut la modifier
-        const updatedTask = fakeTaskService.update(id, newTaskInfos);
+        const updatedTask = taskService.update(id, newTaskInfos);
         res.status(200).json(updatedTask);
     },
 
@@ -151,13 +151,13 @@ const taskController = {
         const newStatus = req.body.isDone;
 
         //on va d'abord vérifier si la tâche existe
-        const task = fakeTaskService.findById(id);
+        const task = taskService.findById(id);
         if (!task) {
             res.status(404).json({ statusCode: 404, message: 'La tâche que vous essayez le modifier n\'existe pas' });
         }
 
         //si la tâche existe, on peut la modifier
-        const uptatedTask = fakeTaskService.updateStatus(id, newStatus);
+        const uptatedTask = taskService.updateStatus(id, newStatus);
         res.status(200).json(uptatedTask);
     },
 
