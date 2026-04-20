@@ -33,7 +33,7 @@ const userService = {
             
             const users = await User.find()
             .or([firstnameFilter, lastnameFilter])
-            .select(['_id', 'firstname', 'lastname', 'createdAt', 'updatedAt']);
+            .select(['_id', 'firstname', 'lastname', 'role', 'createdAt', 'updatedAt']);
             return users;
 
         }catch(err){
