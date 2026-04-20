@@ -4,68 +4,51 @@ const jwtUtils = require('../utils/jwt.utils');
 const authController = {
 
     register: async (req, res) => {
-
         try {
-
-            //On récupère le body de la requête qui contient les infos de l'utilisateur
             const userToAdd = req.body;
 
-            // On va vérifier si l'email n'est pas déjà utilisé
-            if(await authService.emailAlreadyExists(userToAdd.email)){
-
-                res.status(409).json({ statusCode : 409, message : 'Cet email est déjà utilisé' });
-
+            if (await authService.emailAlreadyExists(userToAdd.email)) {
+                return res.status(409).json({ statusCode: 409, message: 'Cet email est déjà utilisé' });
             }
 
-            //On tente de d'ajouter l'utilisateur
+            // Le service gère lui-même la logique du code admin
+            // userToAdd.adminCode est transmis tel quel au service
             const userCreated = await authService.create(userToAdd);
 
             res.location(`/api/user/${userCreated._id}`);
-            
             res.status(201).json({
                 id: userCreated._id,
                 firstname: userCreated.firstname,
-                lastname: userCreated.lastname
+                lastname: userCreated.lastname,
+                role: userCreated.role   // on retourne le rôle pour que le front sache
             });
-
-        }
-        catch (err) {
+        } catch (err) {
+            console.log(err);
             res.sendStatus(500);
         }
     },
 
     login: async (req, res) => {
-
         try {
-            // récupérer les infos de connexion envoyées dans le body
             const credentials = req.body;
-
-            // essayer de trouver l'utilisateur qui correspond à ces données
             const userFound = await authService.findByCredentials(credentials);
 
-            // Si pas d'utilisateur trouvé, les infos de connexion ne sont pas bonnes
-            if(!userFound) {
-                res.status(401).json({ statusCode : 401, message : 'Les informations de connexion ne sont pas bonnes' });
-            }
-            else {
-                // On va lui générer un token
-                const token = await jwtUtils.generate(userFound);
-
-                // On va renvoyer quelques infos de l'utilisateur + son token
-                res.status(200).json( { 
-                    id : userFound._id, 
-                    firstname : userFound.firstname, 
-                    lastname : userFound.lastname,
-                    token
-                } );
+            if (!userFound) {
+                return res.status(401).json({ statusCode: 401, message: 'Les informations de connexion ne sont pas bonnes' });
             }
 
-        }catch(err){
+            const token = await jwtUtils.generate(userFound);
+            res.status(200).json({
+                id: userFound._id,
+                firstname: userFound.firstname,
+                lastname: userFound.lastname,
+                token
+            });
+        } catch (err) {
             console.log(err);
             res.sendStatus(500);
-            
         }
     }
-}
+};
 
 module.exports = authController;
