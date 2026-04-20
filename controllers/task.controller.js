@@ -1,198 +1,128 @@
-// import du type Request et Response pour la JsDoc
 const { Request, Response } = require('express')
-
-// import du service des tâches
-const fakeTaskService = require("../services/fake/fakeTask.service");
 const taskService = require('../services/mongo/task.service');
 
-//création de notre controller
 const taskController = {
 
     /**
-     * Récupérer toutes les tâches
-     * @param { Request } req
-     * @param { Response } res
+     * Récupérer toutes les tâches (avec filtres optionnels)
      */
     getAll: async (req, res) => {
-        // On va récupérer la potentielle query
         const query = req.query;
-        //console.log(query);  //query, même si y'en a pas, sera toujours un objet vide
-
         try {
-
             const tasks = await taskService.find(query);
-            const dataToSend = {
-                count: tasks.length,
-                tasks
-            };
-            res.status(200).json(dataToSend);
-
+            res.status(200).json({ count: tasks.length, tasks });
         } catch (err) {
-
             res.status(500).json({ statusCode: 500, message: 'Erreur lors de la récupération des tâches dans la DB' });
         }
-
-        //#region autre version
-        //version 1 - renvoyer le tableau tel quel
-        // res.status(200).json(tasks);
-        // pareil que res.send(tasks, 200);
-
-        //version 2 - renvoyer un objet avec le total des tâches + le tableau
-        //#endregion
-
     },
 
     /**
-    * Récupérer une tâche
-    * @param { Request } req
-    * @param { Response } res
-    */
+     * Récupérer une tâche par son id
+     */
     getById: async (req, res) => {
         try {
-
             const id = req.params.id;
             const task = await taskService.findById(id);
-
-            // Si pas de tâche récupérée (donc si l'id n'existe pas) l'API renvoie une erreur 404
             if (!task) {
-                res.status(404).json({
-                    statusCode: 404,
-                    message: 'Tâche non trouvée'
-                })
+                return res.status(404).json({ statusCode: 404, message: 'Tâche non trouvée' });
             }
-
-            // Si y'a une tâche
             res.status(200).json(task);
-
-
+        } catch (err) {
+            res.status(500).json({ statusCode: 500, message: 'Erreur lors de la récupération de la tâche' });
         }
-        catch (err) {
-            res.status(500).json({ statusCode: 500, message: 'Une erreur est survenue lors de la récupération de la tâche' })
-        }
-
     },
 
     /**
-    * Récupérer les tâches d'un user
-    * @param { Request } req
-    * @param { Response } res
-    */
+     * Récupérer les tâches de l'utilisateur connecté (protégé par userAuthorizationMiddleware)
+     * Retourne { tasksToDo, tasksGiven }
+     */
     getByUser: async (req, res) => {
         try {
-
             const userId = req.params.id;
-            //TODO Idéalement il faudrait utiliser un userService pour vérifier si l'utilisateur existe vraiment en DB
-
             const tasksToDo = await taskService.findAssignedTo(userId);
             const tasksGiven = await taskService.findGivenBy(userId);
-
-            const dataToSend = {
-                tasksToDo,
-                tasksGiven
-            }
-
-            res.status(200).json(dataToSend);
-        }
-        catch (err) {
+            res.status(200).json({ tasksToDo, tasksGiven });
+        } catch (err) {
             res.status(500).json({ statusCode: 500, message: 'Erreur de la db' });
         }
-
     },
 
     /**
-    * Ajouter une tâche
-    * @param { Request } req
-    * @param { Response } res
-    */
+     * Récupérer les tâches publiques d'un membre (accessible à tous les users connectés)
+     * Retourne uniquement les tâches assignées à ce membre (tasksToDo)
+     * Utilisé pour afficher les tâches des autres membres en lecture seule dans le MemberPanel
+     */
+    getPublicUserTasks: async (req, res) => {
+        try {
+            const userId = req.params.id;
+            const tasksToDo = await taskService.findAssignedTo(userId);
+            // On retourne seulement les tâches à faire — pas les tâches données
+            res.status(200).json({ tasksToDo });
+        } catch (err) {
+            res.status(500).json({ statusCode: 500, message: 'Erreur de la db' });
+        }
+    },
+
+    /**
+     * Ajouter une tâche
+     */
     insert: async (req, res) => {
-
         const taskToAdd = req.body;
-
+        // Si pas d'admin, on force fromUserId = user connecté
+        if (!taskToAdd.fromUserId) {
+            taskToAdd.fromUserId = req.user.id;
+        }
         try {
             const addedTask = await taskService.create(taskToAdd);
-            // Pour respecter les principes REST, on doit rajouter à la réponse, une url qui permet de consulter la valeur ajoutée
             res.location(`/api/tasks/${addedTask.id}`);
             res.status(201).json(addedTask);
-
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur lors de l\'ajout dans la DB' });
         }
-        catch (err) {
-            res.status(500).json({ statusCode: 500, message: 'Erreur lors de l\'ajout dans la DB' })
-        }
-
     },
 
     /**
-    * Modifie les infos d'une tâche
-    * @param { Request } req
-    * @param { Response } res
-    */
+     * Modifier une tâche
+     */
     update: (req, res) => {
-        const id = +req.params.id;
-        const newTaskInfos = req.body;
-
-        //vérifier si la tâche existe
-        const task = taskService.findById(id);
-        if (!task) {
-            res.status(404).json({ statusCode: 404, message: 'La tâche que vous essayez de modifier n\'existe pas' });
-        }
-
-        //si la tâche existe, on peut la modifier
-        const updatedTask = taskService.update(id, newTaskInfos);
-        res.status(200).json(updatedTask);
+        res.sendStatus(501);
     },
 
     /**
-    * Modifie le statut isDone d'une tâche
-    * @param { Request } req
-    * @param { Response } res
-    */
-    updateStatus: (req, res) => {
-        const id = +req.params.id;
-        const newStatus = req.body.isDone;
-
-        //on va d'abord vérifier si la tâche existe
-        const task = taskService.findById(id);
-        if (!task) {
-            res.status(404).json({ statusCode: 404, message: 'La tâche que vous essayez le modifier n\'existe pas' });
+     * Modifier le statut isDone d'une tâche
+     */
+    updateStatus: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const { isDone } = req.body;
+            const task = await taskService.findById(id);
+            if (!task) {
+                return res.status(404).json({ statusCode: 404, message: 'Tâche non trouvée' });
+            }
+            task.isDone = isDone;
+            await task.save();
+            res.status(200).json(task);
+        } catch (err) {
+            res.status(500).json({ statusCode: 500, message: 'Erreur db' });
         }
-
-        //si la tâche existe, on peut la modifier
-        const uptatedTask = taskService.updateStatus(id, newStatus);
-        res.status(200).json(uptatedTask);
     },
 
     /**
-    * Supprime une tâche
-    * @param { Request } req
-    * @param { Response } res
-    */
+     * Supprimer une tâche
+     */
     delete: async (req, res) => {
         try {
-
             const id = req.params.id;
-
             if (await taskService.delete(id)) {
                 res.sendStatus(204);
-            }
-            else {
-                res.status(404).json({ statusCode: 404, message: 'Suppression impossible, la tâche n\'existe pas' })
+            } else {
+                res.status(404).json({ statusCode: 404, message: 'Suppression impossible, la tâche n\'existe pas' });
             }
         } catch (err) {
             res.status(500).json({ statusCode: 500, message: 'Erreur db' });
         }
-
-
-
-
     }
 }
 
-
-
-//on le rend importable en l'exportant
 module.exports = taskController;
-
-
-// doc :
-//res.send(donnée, statusCode) utilisé quand on veut envoyer une donné + statusCode
-//res.sendStatus(statusCode) utilisé quand on veut renvoyer juste un statusCode
