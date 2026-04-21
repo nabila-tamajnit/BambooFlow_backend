@@ -1,5 +1,4 @@
 const categoryController = require("../controllers/category.controller");
-const bodyValidatorMiddleware = require("../middlewares/bodyValidator.middleware");
 
 // Import du middleware pour indiquer que le token est obligatoire
 const authenticationMiddleware = require('../middlewares/auth/authentication.middleware');
@@ -12,7 +11,6 @@ categoryRouter.route('/')
     .get(categoryController.getAll)
     .post( authenticationMiddleware(), 
             roleAuthorizationMiddleware(['Admin']),
-            bodyValidatorMiddleware(), 
             categoryController.insert)
 
 //categoryRouter.get('/', categoryController.getAll)
@@ -23,7 +21,6 @@ categoryRouter.route('/:id')
 
     .put(authenticationMiddleware(),
          roleAuthorizationMiddleware(['Admin']),
-         bodyValidatorMiddleware(),
          categoryController.update)
 
     .delete(authenticationMiddleware(), 

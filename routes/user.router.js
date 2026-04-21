@@ -1,5 +1,6 @@
 const userController = require('../controllers/user.controller');
 const authenticationMiddleware = require('../middlewares/auth/authentication.middleware');
+const userAuthorizationMiddleware = require('../middlewares/auth/userAuthorization.middleware');
 
 const userRouter = require('express').Router();
 
@@ -8,6 +9,6 @@ userRouter.route('/')
 
 // Suppression de compte — authentification obligatoire
 userRouter.route('/:id')
-    .delete(authenticationMiddleware(), userController.deleteAccount);
+    .delete(authenticationMiddleware(), userAuthorizationMiddleware(), userController.deleteAccount);
 
 module.exports = userRouter;

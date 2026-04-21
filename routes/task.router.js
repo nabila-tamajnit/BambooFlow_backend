@@ -1,18 +1,18 @@
 const taskController = require('../controllers/task.controller');
-const bodyValidatorMiddleware = require('../middlewares/bodyValidator.middleware');
 const taskOwnerOrAdminMiddleware = require('../middlewares/auth/taskOwnerOrAdmin.middleware');
 const authenticationMiddleware = require('../middlewares/auth/authentication.middleware');
 const userAuthorizationMiddleware = require('../middlewares/auth/userAuthorization.middleware');
+const roleAuthorizationMiddleware = require('../middlewares/auth/roleAuthorization.middleware');
 
 const taskRouter = require('express').Router();
 
 // ── Routes générales ─────────────────────────────────────────────────────────
 taskRouter.route('/')
-    .get(taskController.getAll)
-    .post(authenticationMiddleware(), bodyValidatorMiddleware(), taskController.insert)
+    .get(authenticationMiddleware(), roleAuthorizationMiddleware(['Admin']), taskController.getAll)
+    .post(authenticationMiddleware(), taskController.insert)
 
 taskRouter.route('/:id')
-    .get(taskController.getById)
+    .get(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.getById)
     .put(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.update)
     .delete(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.delete)
     .patch(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.updateStatus)
@@ -29,10 +29,12 @@ taskRouter.get(
 // ── Tâches publiques d'un membre (accessible à tout utilisateur connecté)
 // Retourne uniquement les tâches "to do" du membre — sans données sensibles
 // Utilisé pour afficher les tâches des autres membres en lecture seule
-taskRouter.get(
-    '/user/:id/tasks',
-    authenticationMiddleware(),
-    taskController.getPublicUserTasks
-)
+// * Si rajout plus tard des "équipes", peut être cool de voir les tâches des gens dans mon équipe mais en l'état, les utilisateurs ne peuvent pas voir les tâches des autres (sauf si admin)
+
+// taskRouter.get(
+//     '/user/:id/tasks',
+//     authenticationMiddleware(),
+//     taskController.getPublicUserTasks
+// )
 
 module.exports = taskRouter;

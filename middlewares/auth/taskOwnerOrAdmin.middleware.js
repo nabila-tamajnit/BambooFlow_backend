@@ -10,7 +10,7 @@ const taskOwnerOrAdminMiddleware = () => {
         const task = await Task.findById(req.params.id);
         if (!task) return res.status(404).json({ message: 'Tâche introuvable' });
 
-        if (task.toUserId.toString() !== userId) {
+        if (task.toUserId.toString() !== userId ) {
             return res.status(403).json({ message: 'Action non autorisée' });
         }
         next();

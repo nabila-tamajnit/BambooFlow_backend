@@ -1,4 +1,4 @@
-const fakeCategoryService = require("../services/fake/fakeCategory.service");
+
 
 const categoryService = require("../services/mongo/category.service");
 

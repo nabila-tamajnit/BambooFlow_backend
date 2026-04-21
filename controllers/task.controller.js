@@ -39,6 +39,11 @@ const taskController = {
     getByUser: async (req, res) => {
         try {
             const userId = req.params.id;
+            // TODO :
+            // Nice to have
+            // Vérifier si admin ou user
+            // Si role user, renvoyer que les tâches à faire (findAssignedTo)
+            // Si role admin, renvoyer ses tâches à faire + tâches qu'il a donné (sans celles qu'il s'est donné lui même)
             const tasksToDo = await taskService.findAssignedTo(userId);
             const tasksGiven = await taskService.findGivenBy(userId);
             res.status(200).json({ tasksToDo, tasksGiven });

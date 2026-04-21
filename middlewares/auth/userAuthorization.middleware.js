@@ -39,7 +39,7 @@ const userAuthorizationMiddleware = () => {
                 } 
                 // Sinon, c'est qu'il n'est ni Admin, ni la personne dont il souhaite regarder les tâches
                 else {
-                    res.status(403).json({ statusCode : 403, message : 'Vous n\'avez pas les droits d\'accéder à ces données !' })
+                    res.status(403).json({ statusCode : 403, message : 'Vous n\'avez pas les droits d\'effectuer cette action !' })
                 }
             }
 
