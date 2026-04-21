@@ -1,10 +1,7 @@
 const argon2 = require('argon2');
 const User = require('../../models/user.model');
 
-// Code secret admin — à mettre dans .env en production
-// Dans .env : ADMIN_SECRET_CODE=votre_code_ici
-// Ici on lit depuis process.env, avec fallback sur une valeur par défaut
-const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE || 'bamboo-admin-2026';
+const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE;
 
 const authService = {
 
