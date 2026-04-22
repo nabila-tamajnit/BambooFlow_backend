@@ -1,101 +1,65 @@
+// services/mongo/category.service.js
 const Category = require("../../models/category.model");
-const Task = require('../../models/task.model');
 
 const categoryService = {
-    /* On va créer notre "vrai" service cette fois ci mais ce sont les mêmes fonctionnalités que notre fakeService, donc nous aurons les mêmes fonctions */
 
-    find: async () => {
+    // Récupère les catégories de l'user + les catégories système
+    findByUser: async (userId) => {
         try {
-            // On va interroger la db (ça peut prendre du temps ou planter donc c'est une promesse)
-            const categories = await Category.find();
+            const categories = await Category.find({
+                $or: [{ userId }, { isSystem: true }]
+            }).sort({ isSystem: -1, name: 1 });
             return categories;
-        }
-        catch (err) {
-            console.log(err);
+        } catch (err) {
             throw new Error(err);
         }
     },
 
     findById: async (id) => {
         try {
-            const searchedCategory = await Category.findById(id);
-            return searchedCategory;
-
+            return await Category.findById(id);
         } catch (err) {
-            console.log(err);
             throw new Error(err);
         }
     },
 
-    create: async (category) => {
+    create: async (categoryData, userId) => {
         try {
-
-            // Dans category il y a des informations contenues dans le body
-            // On va créer l'objet à ajouter à partir du model qu'on a créé
-            const categoryToAdd = Category(category);
-            // On va "sauvegarder" (c'est à dire insérer) notre category dans la db
-            await categoryToAdd.save();
-            // Si tout s'est bien passé, on renvoie la category créée
-            return categoryToAdd;
-
+            const category = new Category({ ...categoryData, userId });
+            await category.save();
+            return category;
         } catch (err) {
-
-            console.log(err);
-            throw new Error(err);
-        }
-
-
-    },
-
-    delete : async (id) => {
-        try {
-            const deletedCategory = await Category.findByIdAndDelete(id);
-            if(!deletedCategory) return false;
-            else return true;
-        }
-        catch(err) {
             throw new Error(err);
         }
     },
 
-    nameAlreadyExists: async (name) => {
+    update: async (id, data) => {
         try {
-
-            //Trouver dans la db une categorie qui possède le nom reçu en paramètre
-            // const searchedCategory = await Category.findOne( { name : name } );
-            const searchedCategory = await Category.findOne({ name });
-
-            if (searchedCategory) {
-                // Si une catégorie a été trouvée c'est que le nom existait déjà donc on renvoie VRAI 
-                return true;
-            }
-            else {
-                // Si aucune catégorie n'a été trouvée c'est que le nom n'existait pas donc on renvoie FAUX 
-                return false;
-            }
-
+            return await Category.findByIdAndUpdate(id, data, { new: true });
         } catch (err) {
-
-            console.log(err);
             throw new Error(err);
-
         }
     },
 
-    isUsed : async(id) => {
+    delete: async (id) => {
         try {
-
-            // On essaie de récupérer un moins une tâche qui a cet id comme categoryId
-            const task = await Task.findOne( { categoryId : id } )
-            //Si pas de tâche, aucune n'est liée à cette catégorie donc on renvoie faux, elle n'es pas utilisée
-            if(!task) return false;
-            //Si y'a une tâche, au moins une est reliée donc on renvoie vrai
-            else return true; 
-
-        }catch(err){
-            throw new Error(err)
+            const deleted = await Category.findByIdAndDelete(id);
+            return !!deleted;
+        } catch (err) {
+            throw new Error(err);
         }
-    }
-}
+    },
+
+    nameExistsForUser: async (name, userId, excludeId = null) => {
+        try {
+            const query = { name, userId };
+            if (excludeId) query._id = { $ne: excludeId };
+            const found = await Category.findOne(query);
+            return !!found;
+        } catch (err) {
+            throw new Error(err);
+        }
+    },
+};
 
 module.exports = categoryService;

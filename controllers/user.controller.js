@@ -3,6 +3,20 @@ const authService = require("../services/mongo/auth.service");
 
 const userController = {
 
+    getMe: async (req, res) => {
+        try {
+            const user = await User.findById(req.user.id)
+                .select('_id firstname lastname email role createdAt');
+            if (!user) {
+                return res.status(404).json({ statusCode: 404, message: 'Utilisateur introuvable.' });
+            }
+            res.status(200).json(user);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur serveur.' });
+        }
+    },
+
     getAll: async (req, res) => {
         try {
             const query = req.query;

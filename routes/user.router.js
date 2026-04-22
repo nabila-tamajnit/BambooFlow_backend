@@ -4,6 +4,9 @@ const userAuthorizationMiddleware = require('../middlewares/auth/userAuthorizati
 
 const userRouter = require('express').Router();
 
+userRouter.route('/me')
+    .get(authenticationMiddleware(), userController.getMe);
+
 userRouter.route('/')
     .get(authenticationMiddleware(), userController.getAll);
 

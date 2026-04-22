@@ -1,110 +1,91 @@
-
-
+// controllers/category.controller.js
 const categoryService = require("../services/mongo/category.service");
-
 
 const categoryController = {
 
+    // GET /api/categories — catégories de l'user connecté
     getAll: async (req, res) => {
         try {
-            //on appelle notre service qui va chercher dans la DB
-            const categories = await categoryService.find();
-            //Si ça marche, on renvoie les catégories
+            const categories = await categoryService.findByUser(req.user.id);
             res.status(200).json(categories);
-
         } catch (err) {
-            // si erreur de récupération dans le service, on envoie une 500
-            console.log(err);
-            res.status(500).json({ statusCode: 500, message: 'Erreur avec la DB' });
-
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur serveur' });
         }
     },
 
-    getById: async (req, res) => {
-
-        const id = req.params.id;
-
-        try {
-            const category = await categoryService.findById(id);
-
-            //Si category est undefined ou null
-            if (!category) {
-                res.status(404).json({ statusCode: 404, message: `La catégorie ${id} n\'existe pas` })
-            }
-
-            res.status(200).json(category);
-
-        }
-        catch (err) {
-            res.status(500).json({ statusCode: 500, message: 'Erreur de la DB' });
-        }
-
-    },
-
+    // POST /api/categories
     insert: async (req, res) => {
-        const categoryToAdd = req.body;
-
         try {
-            // Si le nom existe déjà en base de données, erreur
-            const exists = await categoryService.nameAlreadyExists(categoryToAdd.name)
+            const { name, icon, color } = req.body;
+            if (!name?.trim()) {
+                return res.status(400).json({ statusCode: 400, message: 'Le nom est obligatoire.' });
+            }
 
+            const exists = await categoryService.nameExistsForUser(name.trim(), req.user.id);
             if (exists) {
-                res.status(409).json({ statusCode: 409, message: `La catégorie ${categoryToAdd.name} existe déjà !` });
-            }
-            else {
-                //Si elle n'existe pas, on peut la créer
-                const insertedCategory = await categoryService.create(categoryToAdd);
-
-                res.location(`/api/categories/${insertedCategory.id}`)
-                res.status(201).json(insertedCategory);
+                return res.status(409).json({ statusCode: 409, message: 'Tu as déjà une catégorie avec ce nom.' });
             }
 
+            const created = await categoryService.create(
+                { name: name.trim(), icon: icon || '📋', color: color || 'green' },
+                req.user.id
+            );
+            res.status(201).json(created);
         } catch (err) {
-            res.sendStatus(500);
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur serveur' });
         }
-
-
     },
 
-    update: (req, res) => {
-        //TODO : Vérifier si l'id existe sinon 404
+    // PUT /api/categories/:id
+    update: async (req, res) => {
+        try {
+            const category = await categoryService.findById(req.params.id);
+            if (!category) {
+                return res.status(404).json({ statusCode: 404, message: 'Catégorie introuvable.' });
+            }
+            if (category.isSystem) {
+                return res.status(403).json({ statusCode: 403, message: 'Impossible de modifier une catégorie système.' });
+            }
+            if (category.userId.toString() !== req.user.id) {
+                return res.status(403).json({ statusCode: 403, message: 'Accès refusé.' });
+            }
 
-        //TODO : Vérifier que le nouveau nom n'est pas déjà présent dans la db sinon 409
-
-        //TODO : Faire la modification
-        res.sendStatus(501);
+            const { name, icon, color } = req.body;
+            const updated = await categoryService.update(req.params.id, {
+                name: name?.trim(),
+                icon,
+                color
+            });
+            res.status(200).json(updated);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur serveur' });
+        }
     },
 
+    // DELETE /api/categories/:id
     delete: async (req, res) => {
         try {
-
-            const categoryId = req.params.id;
-
-            //Si la catégorie est utilisée dans une tâche
-            if(await categoryService.isUsed(categoryId)){
-
-                res.status(409).json( {statusCode : 409, message : 'Suppression impossible, la catégorie est reliée à au moins une tâche'});
-
-            }else {
-                
-                // sinon, c'est bon, on tente la suppression
-                if(await categoryService.delete(categoryId)){
-                    //si suppression renvoie vrai, c'est bon c'est fait
-                    res.sendStatus(204);
-                }
-                else {
-                    //si suppression renvoie faux, l'id n'existait pas
-                    res.status(404).json({ statusCode : 404, message : 'La catégorie n\'existe pas'});
-                }
-
+            const category = await categoryService.findById(req.params.id);
+            if (!category) {
+                return res.status(404).json({ statusCode: 404, message: 'Catégorie introuvable.' });
+            }
+            if (category.isSystem) {
+                return res.status(403).json({ statusCode: 403, message: 'Impossible de supprimer une catégorie système.' });
+            }
+            if (category.userId.toString() !== req.user.id) {
+                return res.status(403).json({ statusCode: 403, message: 'Accès refusé.' });
             }
 
-        }catch(err){
-            console.log(err);
-            res.status(500).json({ statusCode : 500, message : 'Une erreur est survenue dans la DB' });
+            await categoryService.delete(req.params.id);
+            res.sendStatus(204);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur serveur' });
         }
-
     },
-}
+};
 
 module.exports = categoryController;
