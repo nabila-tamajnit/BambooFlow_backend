@@ -2,7 +2,6 @@ const { Schema, model, Types } = require('mongoose');
 const Category = require('./category.model');
 const User = require('./user.model');
 
-// models/task.model.js
 const taskSchema = new Schema(
     {
         name: {
@@ -13,8 +12,7 @@ const taskSchema = new Schema(
         description: {
             type: String,
             trim: true,
-            default: ""
-            // Pas required, c'est optionnel
+            default: ''
         },
         isDone: {
             type: Boolean,
@@ -24,21 +22,26 @@ const taskSchema = new Schema(
         before: {
             type: String
         },
+        priority: {
+            type: String,
+            enum: ['high', 'medium', 'low'],
+            default: 'medium'
+        },
         categoryId: {
             type: Types.ObjectId,
-            ref: Category,
+            ref: 'Category',
+            required: false // optionnel maintenant
+        },
+        // Owner de la tâche — remplace fromUserId + toUserId
+        userId: {
+            type: Types.ObjectId,
+            ref: 'User',
             required: true
         },
-        fromUserId: {
-            type: Types.ObjectId,
-            ref: User,
-            required: true
-        },
-        toUserId: {
-            type: Types.ObjectId,
-            ref: User,
-            required: true,
-        }
+
+        // ── ADMIN — conservés pour future évolution (gestion d'équipe) ──
+        // fromUserId: { type: Types.ObjectId, ref: 'User' },
+        // toUserId:   { type: Types.ObjectId, ref: 'User' },
     },
     {
         collection: 'Task',
@@ -47,5 +50,4 @@ const taskSchema = new Schema(
 );
 
 const Task = model('Task', taskSchema);
-
 module.exports = Task;

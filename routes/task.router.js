@@ -1,40 +1,28 @@
+// routes/task.router.js
 const taskController = require('../controllers/task.controller');
-const taskOwnerOrAdminMiddleware = require('../middlewares/auth/taskOwnerOrAdmin.middleware');
 const authenticationMiddleware = require('../middlewares/auth/authentication.middleware');
-const userAuthorizationMiddleware = require('../middlewares/auth/userAuthorization.middleware');
-const roleAuthorizationMiddleware = require('../middlewares/auth/roleAuthorization.middleware');
+// const taskOwnerOrAdminMiddleware = require('../middlewares/auth/taskOwnerOrAdmin.middleware'); // ADMIN — conservé pour future évolution équipe
+// const roleAuthorizationMiddleware = require('../middlewares/auth/roleAuthorization.middleware'); // ADMIN — idem
 
 const taskRouter = require('express').Router();
 
-// ── Routes générales ─────────────────────────────────────────────────────────
+// ── Routes personnelles (chaque user gère SES tâches) ────────────────────────
+
+// Toutes les tâches de l'utilisateur connecté
 taskRouter.route('/')
-    .get(authenticationMiddleware(), roleAuthorizationMiddleware(['Admin']), taskController.getAll)
+    .get(authenticationMiddleware(), taskController.getMyTasks)
     .post(authenticationMiddleware(), taskController.insert)
 
+// Une tâche par id (vérification ownership dans le controller)
 taskRouter.route('/:id')
-    .get(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.getById)
-    .put(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.update)
-    .delete(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.delete)
-    .patch(authenticationMiddleware(), taskOwnerOrAdminMiddleware(), taskController.updateStatus)
+    .get(authenticationMiddleware(), taskController.getById)
+    .patch(authenticationMiddleware(), taskController.updateStatus)
+    .delete(authenticationMiddleware(), taskController.delete)
+    .put(authenticationMiddleware(), taskController.update)
 
-// ── Tâches de l'utilisateur connecté (protégé : uniquement ses propres tâches)
-// userAuthorizationMiddleware vérifie que req.user.id === req.params.id
-taskRouter.get(
-    '/user/:id',
-    authenticationMiddleware(),
-    userAuthorizationMiddleware(),
-    taskController.getByUser
-)
-
-// ── Tâches publiques d'un membre (accessible à tout utilisateur connecté)
-// Retourne uniquement les tâches "to do" du membre — sans données sensibles
-// Utilisé pour afficher les tâches des autres membres en lecture seule
-// * Si rajout plus tard des "équipes", peut être cool de voir les tâches des gens dans mon équipe mais en l'état, les utilisateurs ne peuvent pas voir les tâches des autres (sauf si admin)
-
-// taskRouter.get(
-//     '/user/:id/tasks',
-//     authenticationMiddleware(),
-//     taskController.getPublicUserTasks
-// )
+// ── Routes ADMIN désactivées — conservées pour future évolution (gestion d'équipe) ──
+// taskRouter.get('/', authenticationMiddleware(), roleAuthorizationMiddleware(['Admin']), taskController.getAll)
+// taskRouter.get('/user/:id', authenticationMiddleware(), userAuthorizationMiddleware(), taskController.getByUser)
+// taskRouter.get('/user/:id/tasks', authenticationMiddleware(), taskController.getPublicUserTasks)
 
 module.exports = taskRouter;
