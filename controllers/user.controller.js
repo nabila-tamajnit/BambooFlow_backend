@@ -1,5 +1,6 @@
 const userService = require("../services/mongo/user.service");
 const authService = require("../services/mongo/auth.service");
+const User = require("../models/user.model"); // ← MANQUAIT
 
 const userController = {
 
@@ -19,32 +20,23 @@ const userController = {
 
     getAll: async (req, res) => {
         try {
-            const query = req.query;
-            const users = await userService.find(query);
+            const users = await userService.find(req.query);
             res.status(200).json(users);
         } catch (err) {
-            console.log(err);
-            res.status(500).json({ statusCode: 500, message: 'Une erreur est survenue dans la db' });
+            console.error(err);
+            res.status(500).json({ statusCode: 500, message: 'Erreur serveur' });
         }
     },
 
-    /**
-     * Suppression de compte.
-     * Un user ne peut supprimer que son propre compte.
-     * Un admin peut supprimer n'importe quel compte.
-     */
     deleteAccount: async (req, res) => {
         try {
-            const targetId = req.params.id;
-           
-            const deleted = await authService.deleteById(targetId);
+            const deleted = await authService.deleteById(req.params.id);
             if (!deleted) {
                 return res.status(404).json({ statusCode: 404, message: 'Utilisateur introuvable.' });
             }
-
             res.sendStatus(204);
         } catch (err) {
-            console.log(err);
+            console.error(err);
             res.status(500).json({ statusCode: 500, message: 'Erreur lors de la suppression.' });
         }
     }
