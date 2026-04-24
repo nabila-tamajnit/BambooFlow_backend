@@ -38,12 +38,8 @@ const authController = {
             }
 
             const token = await jwtUtils.generate(userFound);
-            res.status(200).json({
-                id: userFound._id,
-                firstname: userFound.firstname,
-                lastname: userFound.lastname,
-                token
-            });
+            res.status(200).json({ id: userFound._id, firstname: userFound.firstname, lastname: userFound.lastname, role: userFound.role, token });
+
         } catch (err) {
             console.log(err);
             res.sendStatus(500);

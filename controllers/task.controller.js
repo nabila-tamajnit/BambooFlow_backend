@@ -50,6 +50,16 @@ const taskController = {
             const addedTask = await taskService.create(taskToAdd);
             res.location(`/api/tasks/${addedTask.id}`);
             res.status(201).json(addedTask);
+
+            const VALID_PRIORITIES = ['high', 'medium', 'low'];
+            const { name, description, before, priority, categoryId } = req.body;
+
+            if (!name?.trim()) {
+                return res.status(400).json({ statusCode: 400, message: 'Le nom est obligatoire.' });
+            }
+            if (priority && !VALID_PRIORITIES.includes(priority)) {
+                return res.status(400).json({ statusCode: 400, message: 'Priorité invalide.' });
+            }
         } catch (err) {
             console.error(err);
             res.status(500).json({ statusCode: 500, message: 'Erreur lors de la création' });
@@ -107,42 +117,6 @@ const taskController = {
             res.status(500).json({ statusCode: 500, message: 'Erreur db' });
         }
     },
-
-    // ── Méthodes ADMIN — conservées pour future évolution (gestion d'équipe) ──────
-    // getAll: async (req, res) => {
-    //    const query = req.query;
-    //   try {
-    //         const tasks = await taskService.find(query);
-    //         res.status(200).json({ count: tasks.length, tasks });
-    //     } catch (err) {
-    //         res.status(500).json({ statusCode: 500, message: 'Erreur lors de la récupération des tâches dans la DB' });
-    //     }
-    // },
-    // getByUser: async (req, res) => {
-    //     try {
-    //         const userId = req.params.id;
-    //         // TODO :
-    //         // Nice to have
-    //         // Vérifier si admin ou user
-    //         // Si role user, renvoyer que les tâches à faire (findAssignedTo)
-    //         // Si role admin, renvoyer ses tâches à faire + tâches qu'il a donné (sans celles qu'il s'est donné lui même)
-    //         const tasksToDo = await taskService.findAssignedTo(userId);
-    //         const tasksGiven = await taskService.findGivenBy(userId);
-    //         res.status(200).json({ tasksToDo, tasksGiven });
-    //     } catch (err) {
-    //         res.status(500).json({ statusCode: 500, message: 'Erreur de la db' });
-    //     }
-    // },
-    // getPublicUserTasks: async (req, res) => {
-    //     try {
-    //         const userId = req.params.id;
-    //         const tasksToDo = await taskService.findAssignedTo(userId);
-    //         // On retourne seulement les tâches à faire — pas les tâches données
-    //         res.status(200).json({ tasksToDo });
-    //     } catch (err) {
-    //         res.status(500).json({ statusCode: 500, message: 'Erreur de la db' });
-    //     }
-    // },
 };
 
 module.exports = taskController;
