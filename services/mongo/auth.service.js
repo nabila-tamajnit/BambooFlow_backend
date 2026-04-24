@@ -1,5 +1,7 @@
 const argon2 = require('argon2');
 const User = require('../../models/user.model');
+const Task = require('../../models/task.model');
+const Category = require('../../models/category.model');
 
 const ADMIN_SECRET_CODE = process.env.ADMIN_SECRET_CODE;
 
@@ -56,10 +58,16 @@ const authService = {
 
     deleteById: async (userId) => {
         try {
+            // 1. Supprimer les tâches de l'utilisateur
+            await Task.deleteMany({ userId });
+
+            // 2. Supprimer les catégories personnelles
+            await Category.deleteMany({ userId, isSystem: false });
+
+            // 3. Supprimer l'utilisateur
             const deleted = await User.findByIdAndDelete(userId);
             return !!deleted;
         } catch (err) {
-            console.log(err);
             throw new Error(err);
         }
     }
