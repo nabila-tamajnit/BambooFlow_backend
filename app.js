@@ -20,37 +20,11 @@ server.use(cors());
 
 //? -> Configuration pour la production "Autoriser uniquement notre app react"
 //* server.use(cors({
-//*     origin : 'http://<url_vercel>:5173',
+//*     origin : process.env.FRONTEND_URL,
 //*     methods : ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
 //* }))
 
 // ------------------------------------------------------
-
-
-// ---- Connection DB ------------------------------
-// On va créer un middleware qui établit une connexion à chaque requête
-const mongoose = require("mongoose");
-server.use( async (req, res, next) => {
-    //Pour établir la connexion, nous avons besoin d'importer mongoose (voir plus haut)
-    // À partir de cet objet mongoose, nous pouvons créer une connexion. La connexion peut prendre du temps, peut échouer donc la méthode pour se connecter nous renvoie une Promise. Il faut donc soit utiliser .then.catch soir le async await avec le try catch (plus propre)
-    try {
-
-        // on va essayer de se connecter
-        await mongoose.connect(DB_CONNECTION, { dbName : 'TaskManager' });
-        console.log("💾 Successfully connected to the DB !");
-
-        next(); //si on a réussi à se connecter à la DB, on continue la requête
-
-    } catch(err){
-
-        // si la connexion échoue, on va écrire le message d'erreur dans la console
-        console.log(`❌ Connection Failed \n[Reason]\n ${err}`);
-
-        res.status(500).json( { statusCode : 500 , message : 'Impossible de se connecter à la base de données'  } );
-    
-    }
-})
-// -------------------------------------------------
 
 
 // ! 2) Traiter les requêtes
@@ -60,7 +34,16 @@ server.use('/api', router); //indiquer à notre server qu'il doit utiliser le ro
 
 
 
-// ! 3) Écouter le serveur sur un port spécifique
-server.listen(PORT, () => {
-    console.log(`🚀 Express Server started on port ${ PORT }`);
-})
+// ! 3) Connexion DB puis démarrage du serveur
+const mongoose = require("mongoose");
+mongoose.connect(DB_CONNECTION, { dbName: 'TaskManager' })
+    .then(() => {
+        console.log('💾 Successfully connected to the DB!');
+        server.listen(PORT, () => {
+            console.log(`🚀 Express Server started on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error(`❌ Connection Failed\n[Reason]\n ${err}`);
+        process.exit(1);
+    });
