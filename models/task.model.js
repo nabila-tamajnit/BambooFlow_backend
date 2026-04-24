@@ -38,10 +38,6 @@ const taskSchema = new Schema(
             ref: 'User',
             required: true
         },
-
-        // ── ADMIN — conservés pour future évolution (gestion d'équipe) ──
-        // fromUserId: { type: Types.ObjectId, ref: 'User' },
-        // toUserId:   { type: Types.ObjectId, ref: 'User' },
     },
     {
         collection: 'Task',
