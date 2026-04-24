@@ -32,7 +32,7 @@ const taskSchema = new Schema(
             ref: 'Category',
             required: false // optionnel maintenant
         },
-        // Owner de la tâche — remplace fromUserId + toUserId
+        // Owner de la tâche
         userId: {
             type: Types.ObjectId,
             ref: 'User',

@@ -5,8 +5,6 @@ const userRouter = require('./user.router');
 
 
 // ! 1) Créer un objet "routeur" (router)
-
-
 const router = require('express').Router();
 
 // ! 2) Configurer les routes

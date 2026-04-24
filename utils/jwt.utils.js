@@ -14,9 +14,6 @@ const jwtUtils = {
         return new Promise( (resolve, reject) => {
 
             // ? 1) On va créer un "payload" avec certaines données du user.
-            // Un payload c'est un objet contenant les informations qu'on veut cacher dans notre token (on évite d'y mettre des informations sensibles, comme email, password, adresse etc)
-            // Les claims, sont les données qu'on met dans notre payload
-
             const payload = { 
                 id : user._id, /* id est un claims du payload */
                 role : user.role
@@ -35,12 +32,6 @@ const jwtUtils = {
             }
 
             // ? 3) Création du token
-            // Pour créer le token, la méthode a besoin de :
-            // - payload (les informations à stocker dans le token)
-            // - un secret : LE code secret qui va nous servir à signer (à encoder) le jeton et à décoder le jeton. Il ne doit JAMAIS être divulgué et mis sur git sinon, n'importe qui peut décoder votre token.
-            // - les options : la façon dont va être encodé le token
-
-            // - le dernier paramètre de la méthode sign est la fonction exécutée à la fin de la création du token
             jwt.sign(payload, JWT_SECRET, options, (error, token) => {
                 // Si il y a eu une erreur lors de la signature, le param error sera rempli et token sera vide
                 if(error){
@@ -62,11 +53,6 @@ const jwtUtils = {
             }
 
             //? 2) Si y'a bien un token, on peut s'occupe de le décoder
-            // Pour ça on va faire appel à la méthode verify qui prend plusieurs paramètres : 
-            // - Le premier, c'est le token à décoder
-            // - Le deuxième, c'est le secret
-            // - Le troisième, ce sont les options
-            // - Le quatrième et dernier, c'est la fonction qui sera lancée à la fin de la vérification avec comme paramètre erreur et payload
             const options = {
                 audience : JWT_AUDIENCE,
                 issuer : JWT_ISSUER

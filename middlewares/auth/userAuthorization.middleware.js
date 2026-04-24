@@ -14,10 +14,7 @@ const userAuthorizationMiddleware = () => {
         const userId = req.user.id;
         console.log('userId ' + userId);
 
-        // ? 3) Récupérer le role de l'utilisateur qui fait la requête puisque s'il est admin, il a tous les droits
-        // 2 options :
-        // Soit on le récupère dans la requête puisqu'il était dans le token. Inconvénient : Si le rôle de la personne a changé entre le moment où le token a été créé et maintenant, il a toujours l'ancienne rôle
-        // Soit on fait une requête vers la DB pour avoir son rôle à cet instant précis ☝🏻 On va faire elle
+        // ? 3) Récupérer le role de l'utilisateur qui fait la requête puisque s'il est admin, il a tous les droits, même si ce n'est pas sa ressource
         try {
 
             const tokenUser = await User.findById(userId);

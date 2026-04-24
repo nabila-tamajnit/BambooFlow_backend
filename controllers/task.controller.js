@@ -5,7 +5,6 @@ const taskController = {
 
     /**
      * Récupère TOUTES les tâches de l'utilisateur connecté.
-     * Remplace la logique user/admin — seul l'owner voit ses tâches.
      */
     getMyTasks: async (req, res) => {
         try {
@@ -43,16 +42,8 @@ const taskController = {
      */
     insert: async (req, res) => {
         try {
-            const taskToAdd = {
-                ...req.body,
-                userId: req.user.id, // Forcé — toujours l'owner
-            };
-            const addedTask = await taskService.create(taskToAdd);
-            res.location(`/api/tasks/${addedTask.id}`);
-            res.status(201).json(addedTask);
-
             const VALID_PRIORITIES = ['high', 'medium', 'low'];
-            const { name, description, before, priority, categoryId } = req.body;
+            const { name, priority } = req.body;
 
             if (!name?.trim()) {
                 return res.status(400).json({ statusCode: 400, message: 'Le nom est obligatoire.' });
@@ -60,6 +51,12 @@ const taskController = {
             if (priority && !VALID_PRIORITIES.includes(priority)) {
                 return res.status(400).json({ statusCode: 400, message: 'Priorité invalide.' });
             }
+
+            const taskToAdd = { ...req.body, userId: req.user.id };
+            const addedTask = await taskService.create(taskToAdd);
+            res.location(`/api/tasks/${addedTask.id}`);
+            res.status(201).json(addedTask);
+
         } catch (err) {
             console.error(err);
             res.status(500).json({ statusCode: 500, message: 'Erreur lors de la création' });

@@ -21,7 +21,6 @@ const roleAuthorizationMiddleware = (roles) => {
            // Si par contre, on a trouvé un user
            else {
                 // ? 3) On a va vérifier si son rôle fait partie des rôles autorisés
-                // Si le tableau de rôles autorisés inclus le role de l'utilisateur, c'est bon, il peut accéder
                 if(roles.includes(userInDB.role)){
                     next();
                 } 
