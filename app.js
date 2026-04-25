@@ -16,13 +16,25 @@ server.use(logMiddleware());
 // ---- Utilisation du middleware cors ------------------
 const cors = require('cors');
 //? -> Configuration "Tout est autorisé (parfait pour DEV)"
-server.use(cors());
+// server.use(cors());
 
 //? -> Configuration pour la production "Autoriser uniquement notre app react"
-//* server.use(cors({
-//*     origin : process.env.FRONTEND_URL,
-//*     methods : ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-//* }))
+const allowedOrigins = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',')
+    : ['http://localhost:5173'];
+
+server.use(cors({
+    origin: (origin, callback) => {
+        // Autoriser les requêtes sans origin (Insomnia, curl, etc.)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        callback(new Error('Non autorisé par CORS'));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+}));
 
 // ------------------------------------------------------
 
