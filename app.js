@@ -5,8 +5,30 @@ const server = express(); //création du serveur express
 // ? Récupération des variables d'environnement :
 const { PORT, DB_CONNECTION } = process.env;
 
+// ---- SÉCURITÉ : Helmet (headers HTTP) ----
+const helmet = require('helmet');
+server.use(helmet());
+// ------------------------------------------
+
 // ? Pour paramétrer le fait que notre API doit comprendre quand du json arrive
 server.use(express.json());
+
+// ---- SÉCURITÉ : Rate limiting sur l'auth ----
+const rateLimit = require('express-rate-limit');
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // fenêtre de 15 minutes
+    max: 10,                   // max 10 tentatives par IP sur cette fenêtre
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        statusCode: 429,
+        message: 'Trop de tentatives, réessayez dans 15 minutes.'
+    }
+});
+// On l'applique uniquement sur les routes auth
+// (AVANT que le router général soit monté)
+// ---------------------------------------------
 
 // ---- Utilisation d'un app-middleware qu'on a fait ----
 const logMiddleware = require('./middlewares/log.middleware');
@@ -43,6 +65,7 @@ server.use(cors({
 // indiquer à notre app que le routing se trouve dans le dossier 📁 routes
 const router = require('./routes'); //import de l'objet routeur présent dans index.js
 server.use('/api', router); //indiquer à notre server qu'il doit utiliser le router
+server.use('/api/auth', authLimiter); //applique le rate limiter uniquement sur /api/auth
 
 
 
