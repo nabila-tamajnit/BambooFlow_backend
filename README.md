@@ -55,7 +55,7 @@
 ## 🔗 Liens
 
 [![Frontend App](https://img.shields.io/badge/-Voir%20l'app-000000?style=for-the-badge)](https://bambooflow-app.vercel.app/)
-[![Frontend Repo](https://img.shields.io/badge/-Frontend%20Repo-3E3742?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nabila-tamajnit/BambooBlow_frontend)
+[![Frontend Repo](https://img.shields.io/badge/-Frontend%20Repo-3E3742?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nabila-tamajnit/BambooFlow_frontend)
 
 ---
 
