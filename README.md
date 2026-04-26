@@ -52,29 +52,10 @@
 
 ---
 
-## 🛠️ Installation
+## 🔗 Liens
 
-```bash
-# Cloner le projet
-git clone https://github.com/nabila-tamajnit/bambooflow-backend
-
-# Installer les dépendances
-npm install
-
-# Créer le fichier d'environnement
-cp .env.example .env
-# → renseigner PORT, DB_CONNECTION, JWT_SECRET, JWT_ISSUER, JWT_AUDIENCE, FRONTEND_URL
-
-# Lancer en développement
-npm run dev
-```
-
----
-
-## 🔗 Repo lié
-
-Le frontend (React + Tailwind) est disponible ici :
-**[bambooflow-frontend →](https://github.com/nabila-tamajnit/BambooFlow_frontend)**
+[![Frontend App](https://img.shields.io/badge/-Voir%20l'app-000000?style=for-the-badge)](https://bambooflow-app.vercel.app/)
+[![Frontend Repo](https://img.shields.io/badge/-Frontend%20Repo-3E3742?style=for-the-badge&logo=github&logoColor=white)](https://github.com/nabila-tamajnit/BambooBlow_frontend)
 
 ---
 
